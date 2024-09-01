@@ -1,18 +1,28 @@
 import 'package:animated_splash_screen/animated_splash_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:water_tracker/ViewModel/DashboardViewModel.dart';
+import 'package:water_tracker/view/History.dart';
+import 'package:water_tracker/ViewModel/DashboardProvider.dart';
 import 'package:water_tracker/view/homepage.dart';
 
-import 'DrinkHistoryProvider.dart';
+import 'ViewModel/DrinkHistoryProvider.dart';
 
 void main() {
   runApp(
-    ChangeNotifierProvider(
-      create: (context) => DashboardProvider(),
-      child: const MyApp()),
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(
+          create: (context) => DashboardProvider(),
+        ),
+        ChangeNotifierProvider(
+          create: (context) => DrinkHistoryProvider(),
+        ),
+      ],
+      child: const MyApp(), // The child widget is provided to MultiProvider
+    ),
   );
 }
+
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
@@ -35,4 +45,3 @@ class MyApp extends StatelessWidget {
     );
   }
 }
-

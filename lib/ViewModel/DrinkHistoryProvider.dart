@@ -1,18 +1,18 @@
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
-import 'Model/CupData.dart';
+import '../Model/CupData.dart';
 
 class DrinkHistoryProvider extends ChangeNotifier {
   List<DrinkData> _drinkHistory = [];
 
   List<DrinkData> get drinkHistory => _drinkHistory;
 
-  void addDrinkData(DrinkData drinkData) {
-    _drinkHistory.add(drinkData);
-    loadDrinkHistory();
-    notifyListeners();
-  }
+  // void addDrinkData(DrinkData drinkData) {
+  //   _drinkHistory.add(drinkData);
+  //   loadDrinkHistory();
+  //   notifyListeners();
+  // }
 
   Future<void> loadDrinkHistory() async {
     _drinkHistory = await retrieveDrinkHistory();

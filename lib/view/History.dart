@@ -1,8 +1,8 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'DrinkHistoryProvider.dart';
-import 'Model/CupData.dart';
+import '../ViewModel/DrinkHistoryProvider.dart';
+import '../Model/CupData.dart';
 
 class History extends StatefulWidget {
   const History({super.key});
@@ -13,15 +13,12 @@ class History extends StatefulWidget {
 
 class _HistoryState extends State<History> with SingleTickerProviderStateMixin {
   late TabController _tabController;
-
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
+    Provider.of<DrinkHistoryProvider>(context, listen:  false).loadDrinkHistory();
     // Load drink history when the widget is initialized
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<DrinkHistoryProvider>().loadDrinkHistory();
-    });
   }
 
   @override
@@ -65,6 +62,7 @@ class _HistoryState extends State<History> with SingleTickerProviderStateMixin {
                   // Tab 1 - Today
                   Consumer<DrinkHistoryProvider>(
                     builder: (context, provider, child) {
+                      provider.loadDrinkHistory();
                       return ListView.builder(
                         itemCount: provider.drinkHistory.length,
                         itemBuilder: (context, index) {

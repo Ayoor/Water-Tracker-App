@@ -20,8 +20,8 @@ class DashboardProvider extends ChangeNotifier{
   String _dueDate= DashboardModel().dueDate;
   String get dueDate => _dueDate;
 
-  int _currentMill = DashboardModel().currentMill;
-  int get currentMill => _currentMill;
+  int _drinkMill = DashboardModel().currentMill;
+  int get currentMill => _drinkMill;
 
   int _currentNumber = DashboardModel().currentNumber;
   int get currentNumber => _currentNumber;
@@ -54,16 +54,16 @@ class DashboardProvider extends ChangeNotifier{
     if(currentTime.day == lastDrinkTime.day){
       if (currentTime.isAfter(lastDrinkTime)) {
         _dueDate = "Due";
-        _currentMill = (prefs.getInt('currentMill') ?? 0);
+        _drinkMill = (prefs.getInt('currentMill') ?? 0);
          } else {
-        _currentMill = (prefs.getInt('currentMill') ?? 0);
+        _drinkMill = (prefs.getInt('currentMill') ?? 0);
         formatedTime =  DateFormat('h:mm a').format(lastDrinkTime);
         _dueDate = formatedTime;
 
       }
     }
     else{
-      _currentMill = 0;
+      _drinkMill = 0;
       _dueDate = "Due";
 
     }
@@ -77,7 +77,7 @@ class DashboardProvider extends ChangeNotifier{
 
   Future<DateTime> _getLastDrinkTime() async{
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    String? lastDrinkTimeString = prefs.getString("futureTime");
+    String? lastDrinkTimeString = prefs.getString("lastDrinkTime");
     DateTime lastDrinkTime;
 
     if (lastDrinkTimeString != null) {
@@ -128,13 +128,14 @@ class DashboardProvider extends ChangeNotifier{
   // *************************************
 
   void drink() async {
-    _currentMill += _selectedCup.cupMil * _currentNumber;
+    _drinkMill += _selectedCup.cupMil * _currentNumber;
+    _cupMill = "${_selectedCup.cupMil * _currentNumber}ml";
     setIndicatorPercentage();
     notifyListeners();
 
     //save in memory
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    prefs.setInt('currentMill', _currentMill);
+    prefs.setInt('currentMill', _drinkMill);
 
     _dueDate =  DateFormat('h:mm a').format(getNextDrinkTime());
     String nextDrinkTime = getNextDrinkTime().toString();
@@ -142,7 +143,7 @@ class DashboardProvider extends ChangeNotifier{
 
     DrinkData drinkData = DrinkData(
         cupData: CupData(
-            image: _imgPath, cupMil: _currentMill, cupMlText: _cupMill),
+            image: _imgPath, cupMil: _drinkMill, cupMlText: _cupMill),
         time: getCurrentTime());
 
 
@@ -153,6 +154,8 @@ class DashboardProvider extends ChangeNotifier{
       _drinkHistory= [];
     }
     _drinkHistory.add(drinkData);
+    prefs.setString('lastDrinkTime', _currentTime.toString());
+
     try {
       saveDrinkHistory(_drinkHistory);
       _showToast("Happy Drinking");
@@ -170,7 +173,7 @@ class DashboardProvider extends ChangeNotifier{
   // *************************************
 
   void setIndicatorPercentage() {
-    if (_currentMill > 1500) {
+    if (_drinkMill > 1500) {
       _indicatorPercentage = 1.0;
     } else {
       _indicatorPercentage = ((currentMill / 1500) * 100) / 100;

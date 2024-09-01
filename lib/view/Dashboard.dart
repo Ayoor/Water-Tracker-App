@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:percent_indicator/circular_percent_indicator.dart';
 import 'package:provider/provider.dart';
-import 'package:water_tracker/ViewModel/DashboardViewModel.dart';
+import 'package:water_tracker/ViewModel/DashboardProvider.dart';
 import '../CustomDialogue.dart';
 
 class Dashboard extends StatefulWidget {
