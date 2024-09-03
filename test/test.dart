@@ -1,39 +1,47 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:water_tracker/Model/historyData.dart';
 
 void main() {
-  runApp(MyApp());
-}
+  List<HistoryData> sevenWeekHistory = [
+    HistoryData(date: '27/8', totalWaterMl: 1800),
+    HistoryData(date: '28/8', totalWaterMl: 1800),
+    HistoryData(date: '29/8', totalWaterMl: 1800),
+    HistoryData(date: '30/8', totalWaterMl: 1800),
+    HistoryData(date: '31/8', totalWaterMl: 1800),
+    HistoryData(date: '1/9', totalWaterMl: 1800),
+    HistoryData(date: '2/9', totalWaterMl: 1800),
 
-class MyApp extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      home: Scaffold(
-        appBar: AppBar(
-          title: Text('Time in 3 Hours'),
-        ),
-        body: Center(
-          child: TimeIn3Hours(),
-        ),
-      ),
-    );
-  }
-}
 
-class TimeIn3Hours extends StatelessWidget {
-  String _getTimeIn3Hours() {
-    DateTime now = DateTime.now();
-    DateTime futureTime = now.add(Duration(hours: 3));
-    String formattedTime = DateFormat('yyyy-MM-dd HH:mm:ss').format(futureTime);
-    return formattedTime;
+  ];
+  print(sevenWeekHistory.reversed);
+
+  int count = 0;
+  List<String>last7Days = [];
+  String date;
+  for (int i = 0; i < 7; i++) {
+    date = "${DateTime
+        .now()
+        .subtract(Duration(days: i))
+        .day}/${DateTime
+        .now()
+        .subtract(Duration(days: i))
+        .month}";
+    // print("date: $date");
+    last7Days.add(date);
+  }
+  // print(last7Days);
+  checkLast7DaysData(sevenWeekHistory, last7Days);
+}
+  void checkLast7DaysData(List<HistoryData> history, List<String> last7Days){
+    for(int i = 0; i < 7; i++) {
+      if(history[i].date == last7Days.reversed.toList()[i]){
+        print("Match");
+      }
+      else{
+        print("No Match");
+      }
+    }
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Text(
-      'Time in 3 hours: ${_getTimeIn3Hours()}',
-      style: TextStyle(fontSize: 20),
-    );
-  }
-}
+

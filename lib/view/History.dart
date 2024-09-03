@@ -1,8 +1,7 @@
-import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:water_tracker/widgets/chart.dart';
 import '../ViewModel/DrinkHistoryProvider.dart';
-import '../Model/CupData.dart';
 
 class History extends StatefulWidget {
   const History({super.key});
@@ -89,11 +88,15 @@ class _HistoryState extends State<History> with SingleTickerProviderStateMixin {
                       );
                     },
                   ),
+
                   // Tab 2 - Past Week (You can implement the past week functionality similarly)
-                  const Center(
-                    child: Text(
-                      "Content for Tab 2",
-                      style: TextStyle(fontSize: 25, color: Colors.blue),
+                  Center(
+                    child: Container(
+                      height: MediaQuery.of(context).size.height/2,
+                      decoration: BoxDecoration(
+                        border: Border.all(color: Colors.grey),
+                      ),
+                      child: HistoryChart(),
                     ),
                   ),
                 ],
