@@ -20,6 +20,7 @@ class _DashboardState extends State<Dashboard> {
     super.initState();
     final dvm = Provider.of<DashboardProvider>(context, listen: false);
     dvm.loadCurrentWaterIntakeStatus();
+    dvm.retrieveWeeklyHistoryData();
     _controller.text = dvm.currentNumber.toString();
   }
 

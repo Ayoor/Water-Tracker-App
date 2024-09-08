@@ -1,3 +1,5 @@
+import 'package:water_tracker/Model/historyData.dart';
+
 import 'CupData.dart';
 
 class DashboardModel {
@@ -9,7 +11,7 @@ class DashboardModel {
   CupData selectedCup =
   CupData(image: "Assets/water100.png", cupMlText: "100ml", cupMil: 100);
   double indicatorPercentage = 0.0;
-
+  List<HistoryData> weeklyHistory = [];
   List<DrinkData> drinkHistory = [];
   DateTime currentTime = DateTime.now();
 }

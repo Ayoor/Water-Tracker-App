@@ -14,10 +14,17 @@ void main() {
 
 
   ];
-  print(sevenWeekHistory.reversed);
+  print(getLast7days().reversed);
 
-  int count = 0;
+
   List<String>last7Days = [];
+  sevenDays(sevenWeekHistory, getLast7days());
+
+  // print(last7Days);
+  // print(getLast7DaysHistory(sevenWeekHistory, last7Days));
+}
+List<String> getLast7days(){
+  List<String> last7Days = [];
   String date;
   for (int i = 0; i < 7; i++) {
     date = "${DateTime
@@ -30,18 +37,29 @@ void main() {
     // print("date: $date");
     last7Days.add(date);
   }
-  // print(last7Days);
-  checkLast7DaysData(sevenWeekHistory, last7Days);
+  return last7Days;
 }
-  void checkLast7DaysData(List<HistoryData> history, List<String> last7Days){
-    for(int i = 0; i < 7; i++) {
-      if(history[i].date == last7Days.reversed.toList()[i]){
-        print("Match");
-      }
-      else{
-        print("No Match");
-      }
+
+List<int> getLast7DaysHistory(List<HistoryData> history, List<String> last7Days){
+  List<int> waterIntakeVolumePerDay = [];
+  for(int i = 0; i < 7; i++) {
+    if(history[i].date != last7Days.reversed.toList()[i]){
+      history[i].totalWaterMl = 0;
+    }
+     }
+  return waterIntakeVolumePerDay;
+}
+
+void sevenDays(List<HistoryData> history, List<String> last7Days){
+  List<int> waterIntakeVolumePerDay = [];
+  for(int i = 0; i < 7; i++) {
+    if(history[i].date != last7Days.reversed.toList()[i]){
+      waterIntakeVolumePerDay.add(0);
+    }
+    else{
+      waterIntakeVolumePerDay.add(history[i].totalWaterMl as int);
     }
   }
-
+  print(waterIntakeVolumePerDay);
+}
 

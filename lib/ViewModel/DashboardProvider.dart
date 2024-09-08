@@ -1,46 +1,58 @@
 import 'dart:convert';
-
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:water_tracker/Model/dashboard_model.dart';
+import 'package:water_tracker/Model/historyData.dart';
 
 import '../Model/CupData.dart';
 
-class DashboardProvider extends ChangeNotifier{
-
+class DashboardProvider extends ChangeNotifier {
   // *************************************
   // -- variable declarations --
   // *************************************
+
   final DateTime _currentTime = DashboardModel().currentTime;
+
   DateTime get currentTime => _currentTime;
 
-  String _dueDate= DashboardModel().dueDate;
+  String _dueDate = DashboardModel().dueDate;
+
   String get dueDate => _dueDate;
 
-  int _drinkMill = DashboardModel().currentMill;
-  int get currentMill => _drinkMill;
+  int _currentMill = DashboardModel().currentMill;
+
+  int get currentMill => _currentMill;
 
   int _currentNumber = DashboardModel().currentNumber;
+
   int get currentNumber => _currentNumber;
 
   String _imgPath = DashboardModel().imagePath;
+
   String get imgPath => _imgPath;
 
   String _cupMill = DashboardModel().cupMill;
+
   String get cupMill => _cupMill;
 
   final CupData _selectedCup = DashboardModel().selectedCup;
+
   CupData get selectedCup => _selectedCup;
 
   List<DrinkData> _drinkHistory = DashboardModel().drinkHistory;
+
   List<DrinkData> get drinkHistory => _drinkHistory;
 
   double _indicatorPercentage = DashboardModel().indicatorPercentage;
+
   double get indicatorPercentage => _indicatorPercentage;
 
+  List<HistoryData> _weeklyData = DashboardModel().weeklyHistory;
+
+  List<HistoryData> get weeklyData => _weeklyData;
+  
   // *************************************
   // -- load Current Water Intake Status --
   // *************************************
@@ -51,21 +63,18 @@ class DashboardProvider extends ChangeNotifier{
     // load the saved list
     DateTime lastDrinkTime = await _getLastDrinkTime();
 
-    if(currentTime.day == lastDrinkTime.day){
+    if (currentTime.day == lastDrinkTime.day) {
       if (currentTime.isAfter(lastDrinkTime)) {
         _dueDate = "Due";
-        _drinkMill = (prefs.getInt('currentMill') ?? 0);
-         } else {
-        _drinkMill = (prefs.getInt('currentMill') ?? 0);
-        formatedTime =  DateFormat('h:mm a').format(lastDrinkTime);
+        _currentMill = (prefs.getInt('currentMill') ?? 0);
+      } else {
+        _currentMill = (prefs.getInt('currentMill') ?? 0);
+        formatedTime = DateFormat('h:mm a').format(lastDrinkTime);
         _dueDate = formatedTime;
-
       }
-    }
-    else{
-      _drinkMill = 0;
+    } else {
+      _currentMill = 0;
       _dueDate = "Due";
-
     }
     setIndicatorPercentage();
     notifyListeners();
@@ -75,14 +84,13 @@ class DashboardProvider extends ChangeNotifier{
   // -- fetch time of last drink --
   // *************************************
 
-  Future<DateTime> _getLastDrinkTime() async{
+  Future<DateTime> _getLastDrinkTime() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String? lastDrinkTimeString = prefs.getString("lastDrinkTime");
     DateTime lastDrinkTime;
 
     if (lastDrinkTimeString != null) {
       lastDrinkTime = DateTime.parse(lastDrinkTimeString);
-
     } else {
       lastDrinkTime = currentTime.subtract(const Duration(minutes: 1));
     }
@@ -95,7 +103,6 @@ class DashboardProvider extends ChangeNotifier{
 
   void decrement() {
     if (_currentNumber > 1) {
-
       _currentNumber--;
       notifyListeners();
     }
@@ -105,6 +112,7 @@ class DashboardProvider extends ChangeNotifier{
     _currentNumber++;
     notifyListeners();
   }
+
   // *************************************
   // -- manually editing the quantity --
   // *************************************
@@ -126,46 +134,154 @@ class DashboardProvider extends ChangeNotifier{
   // *************************************
   // -- drink function --
   // *************************************
+ 
 
   void drink() async {
-    _drinkMill += _selectedCup.cupMil * _currentNumber;
+    _currentMill += _selectedCup.cupMil * _currentNumber;
     _cupMill = "${_selectedCup.cupMil * _currentNumber}ml";
     setIndicatorPercentage();
     notifyListeners();
 
     //save in memory
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    prefs.setInt('currentMill', _drinkMill);
+    prefs.setInt('currentMill', _currentMill);
 
-    _dueDate =  DateFormat('h:mm a').format(getNextDrinkTime());
+    _dueDate = DateFormat('h:mm a').format(getNextDrinkTime());
     String nextDrinkTime = getNextDrinkTime().toString();
     prefs.setString('futureTime', nextDrinkTime);
+    prefs.setString('lastDrinkTime', DateTime.now().toString());
 
     DrinkData drinkData = DrinkData(
-        cupData: CupData(
-            image: _imgPath, cupMil: _drinkMill, cupMlText: _cupMill),
+        cupData:
+            CupData(image: _imgPath, cupMil: _currentMill, cupMlText: _cupMill),
         time: getCurrentTime());
 
-
     DateTime lastDrinkTime = await _getLastDrinkTime();
-    if(_currentTime.day == lastDrinkTime.day) {
+    retrieveWeeklyHistoryData();
+
+    if (_currentTime.day == lastDrinkTime.day) {
       _drinkHistory = await _retrieveDrinkHistory();
-    }else{
-      _drinkHistory= [];
+
+      _weeklyData[_weeklyData.length - 1] = (HistoryData(
+            date: "${DateTime.now().day}/ ${DateTime.now().month}",
+            totalWaterMl: _currentMill.toDouble()));
+
+    } else {
+      //save to weekly list before deleting
+      if (_weeklyData.length != 7) {
+        _weeklyData.add(HistoryData(
+            date: "${DateTime.now().day}/ ${DateTime.now().month}",
+            totalWaterMl: _currentMill.toDouble()));
+      } else {
+        _weeklyData.removeAt(0);
+        _weeklyData.add(HistoryData(
+            date: "${DateTime.now().day}/ ${DateTime.now().month}",
+            totalWaterMl: _currentMill.toDouble()));
+      }
+      _drinkHistory = [];
     }
     _drinkHistory.add(drinkData);
     prefs.setString('lastDrinkTime', _currentTime.toString());
 
-    try {
-      saveDrinkHistory(_drinkHistory);
-      _showToast("Happy Drinking");
+    // Convert the list of HistoryData to a list of Maps
+    List<String> historyList =
+        _weeklyData.map((data) => jsonEncode(data.toMap())).toList();
+
+    // Save the list of JSON strings
+    prefs.setStringList('historyData', historyList);
+
+    saveDrinkHistory(_drinkHistory);
+    _showToast("Happy Drinking");
+
+
+
+    // Retrieve the list of JSON strings
+    List<String>? h = prefs.getStringList('historyData');
+    if(h!=null) {
+      // Convert each JSON string back to a HistoryData object
+      _weeklyData= historyList.map((item) => HistoryData.fromMap(jsonDecode(item))).toList();
+      print("Saved Data: ${_weeklyData[0].totalWaterMl} with size of ${_weeklyData.length}");
 
     }
-    catch (e){
-      _showToast("An error occurred please try again later");
+    else{
+      _weeklyData=[];
+      print("Weekly Data empty");
     }
+
     notifyListeners();
+  }
 
+
+
+  void retrieveWeeklyHistoryData() async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    _currentMill= prefs.getInt("currentMill")??0;
+
+    // Retrieve the list of JSON strings
+    List<String>? historyList = prefs.getStringList('historyData');
+
+    if (historyList != null) {
+      // Convert each JSON string back to a HistoryData object
+      _weeklyData = historyList
+          .map((item) => HistoryData.fromMap(jsonDecode(item)))
+          .toList();
+    } else {
+      _weeklyData = [];
+    }
+    if(_weeklyData.isEmpty){
+      _weeklyData.add(HistoryData(
+          date: "${DateTime.now().day}/ ${DateTime.now().month}",
+          totalWaterMl: 0.0));
+    }
+    else{
+      DateTime lastDrinkTime = await _getLastDrinkTime();
+
+      if (_currentTime.day == lastDrinkTime.day) {
+
+        _weeklyData[_weeklyData.length - 1] = (HistoryData(
+              date: "${DateTime.now().day}/ ${DateTime.now().month}",
+              totalWaterMl: _currentMill.toDouble()));
+
+      } else {
+
+        if (_weeklyData.length != 7) {
+          _weeklyData.add(HistoryData(
+              date: "${DateTime.now().day}/ ${DateTime.now().month}",
+              totalWaterMl: _currentMill.toDouble()));
+        }
+
+        else {
+          _weeklyData.removeAt(0);
+          _weeklyData.add(HistoryData(
+              date: "${DateTime.now().day}/ ${DateTime.now().month}",
+              totalWaterMl: _currentMill.toDouble()));
+        }
+        lastDrinkTime = DateTime.now().subtract(const Duration(milliseconds: 500));
+        prefs.setString("lastDrinkTime", "$lastDrinkTime");
+      }
+      // Convert the list of HistoryData to a list of Maps
+      List<String> historyList =
+      _weeklyData.map((data) => jsonEncode(data.toMap())).toList();
+    }
+    historyList =_weeklyData.map((data) => jsonEncode(data.toMap())).toList();
+
+    // Save the list of JSON strings
+    prefs.setStringList('historyData', historyList);
+   
+
+    // Retrieve the list of JSON strings
+    List<String>? h = prefs.getStringList('historyData');
+    if(h!=null) {
+      // Convert each JSON string back to a HistoryData object
+      _weeklyData= historyList.map((item) => HistoryData.fromMap(jsonDecode(item))).toList();
+      print("Saved Data: ${_weeklyData[0].totalWaterMl} with size of ${_weeklyData.length}");
+      
+    }
+    else{
+      _weeklyData=[];
+      print("Weekly Data empty");
+    }
+notifyListeners();
   }
 
   // *************************************
@@ -173,7 +289,7 @@ class DashboardProvider extends ChangeNotifier{
   // *************************************
 
   void setIndicatorPercentage() {
-    if (_drinkMill > 1500) {
+    if (_currentMill > 1500) {
       _indicatorPercentage = 1.0;
     } else {
       _indicatorPercentage = ((currentMill / 1500) * 100) / 100;
@@ -195,27 +311,27 @@ class DashboardProvider extends ChangeNotifier{
   // -- get date --
   // *************************************
 
-  String getDate(){
+  String getDate() {
     final formatter = DateFormat('dd/MM/yyy'); // Year-Month-Day format
     String formattedDate = formatter.format(DateTime.now());
     return formattedDate;
   }
 
-  String getCurrentTime(){
+  String getCurrentTime() {
     DateTime currentTime = DateTime.now();
     String nextDueTime = DateFormat('h:mm a').format(currentTime);
     return nextDueTime;
   }
 
-
   Future<List<DrinkData>> _retrieveDrinkHistory() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     List<String>? encodedList = prefs.getStringList('drinkHistory');
     if (encodedList != null) {
-      _drinkHistory= encodedList.map((encodedDrink) => DrinkData.fromJson(jsonDecode(encodedDrink))).toList();
+      _drinkHistory = encodedList
+          .map((encodedDrink) => DrinkData.fromJson(jsonDecode(encodedDrink)))
+          .toList();
       return drinkHistory;
-    }
-    else {
+    } else {
       return [];
     }
   }
@@ -228,8 +344,7 @@ class DashboardProvider extends ChangeNotifier{
         timeInSecForIosWeb: 1,
         backgroundColor: Colors.black,
         textColor: Colors.white,
-        fontSize: 16.0
-    );
+        fontSize: 16.0);
   }
 
   // *************************************
@@ -237,9 +352,8 @@ class DashboardProvider extends ChangeNotifier{
   // *************************************
   Future<void> saveDrinkHistory(List<DrinkData> drinkHistory) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    List<String> encodedList = drinkHistory.map((drink) => jsonEncode(drink.toJson())).toList();
+    List<String> encodedList =
+        drinkHistory.map((drink) => jsonEncode(drink.toJson())).toList();
     await prefs.setStringList('drinkHistory', encodedList);
   }
-
-
 }

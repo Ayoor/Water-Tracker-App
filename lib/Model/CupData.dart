@@ -35,3 +35,4 @@ class DrinkData {
     time: json['time'],
   );
 }
+
