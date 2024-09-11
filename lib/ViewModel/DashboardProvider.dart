@@ -172,7 +172,8 @@ class DashboardProvider extends ChangeNotifier {
     DateTime lastDrinkTime = await _getLastDrinkTime();
     retrieveWeeklyHistoryData();
 
-    if (_currentTime.day == lastDrinkTime.day) {
+    DateTime lastAppOpen = await _getLastAppOpened();
+    if (_currentTime.day == lastAppOpen.day) {
       _drinkHistory = await _retrieveDrinkHistory();
 
       _weeklyData[_weeklyData.length - 1] = (HistoryData(
