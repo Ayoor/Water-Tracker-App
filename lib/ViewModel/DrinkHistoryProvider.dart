@@ -39,45 +39,6 @@ class DrinkHistoryProvider extends ChangeNotifier {
   }
 
 
-  List<double> sevenDays(List<HistoryData> history, List<String> last7Days){
-    List<double> waterIntakeVolumePerDay = [];
-   if(history.length <7){
-     for(int i = history.length; i < 7; i++){
-       history.add(HistoryData(date: "", totalWaterMl: 0));
-     }
-
-   }
-   history = history.reversed.toList();
-       for(int i = 0; i < 7; i++) {
-      if(history[i].date != last7Days[i]){
-        waterIntakeVolumePerDay.add(0);
-      }
-      else{
-        waterIntakeVolumePerDay.add(history[i].totalWaterMl);
-      }
-    }
-
-
-    return waterIntakeVolumePerDay;
-  }
-  List<String> getLast7days(){
-    List<String> last7Days = [];
-    String date;
-    for (int i = 0; i < 7; i++) {
-      date = "${DateTime
-          .now()
-          .subtract(Duration(days: i))
-          .day}/${DateTime
-          .now()
-          .subtract(Duration(days: i))
-          .month}";
-      // print("date: $date");
-      last7Days.add(date);
-    }
-
-
-    return last7Days;
-  }
 
 
 }

@@ -101,11 +101,11 @@ class _HistoryState extends State<History> with SingleTickerProviderStateMixin {
     child: SizedBox(
     height: MediaQuery.of(context).size.height / 2.5,
     // child: AnimatedBarGraph(),
-    child: Consumer<DrinkHistoryProvider>( builder: (context, provider, child) {
-      final dashhboardProvider = Provider.of<DashboardProvider>(context, listen: false);
-      dashhboardProvider.retrieveWeeklyHistoryData();
-      return const AnimatedBarGraph();}
-    ),
+    // child: Consumer<DrinkHistoryProvider>( builder: (context, provider, child) =>
+         child: Consumer<DashboardProvider>(builder: (context, provider, child) {
+           final List<double> yValues = provider.sevenDays(provider.weeklyData, provider.getLast7days().reversed.toList());
+           return AnimatedBarGraph( yValues: yValues,);
+         }),
     ),
     ),
     ),

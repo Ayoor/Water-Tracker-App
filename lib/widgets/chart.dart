@@ -9,7 +9,8 @@ import 'package:water_tracker/ViewModel/DrinkHistoryProvider.dart';
 import '../Model/historyData.dart';
 
 class AnimatedBarGraph extends StatefulWidget {
-  const AnimatedBarGraph({super.key});
+  final List<double>yValues;
+   AnimatedBarGraph({super.key, required this.yValues});
 
   @override
   _AnimatedBarGraphState createState() => _AnimatedBarGraphState();
@@ -20,17 +21,15 @@ class _AnimatedBarGraphState extends State<AnimatedBarGraph> {
   @override
   Widget build(BuildContext context) {
 
-
-    final historyProvider = Provider.of<DrinkHistoryProvider>(context, listen: false);
     final dashboardProvider = Provider.of<DashboardProvider>(context, listen: false);
-    final List<String> xLabels = historyProvider.getLast7days().reversed.toList();
+    final List<String> xLabels = dashboardProvider.getLast7days().reversed.toList();
 
 
    dashboardProvider.retrieveWeeklyHistoryData();
 
-    final List<double> yValues = historyProvider.sevenDays(dashboardProvider.weeklyData, historyProvider.getLast7days().reversed.toList());
 
-    double maxYValue = yValues.reduce((a, b) => a > b ? a : b); // Find the maximum y value
+
+    double maxYValue = widget.yValues.reduce((a, b) => a > b ? a : b); // Find the maximum y value
 
     return BarChart(
       BarChartData(
@@ -79,7 +78,7 @@ class _AnimatedBarGraphState extends State<AnimatedBarGraph> {
           show: true,
           border: Border.all(color: Colors.grey, width: 1),
         ),
-        barGroups: yValues.asMap().entries.map((entry) {
+        barGroups: widget.yValues.asMap().entries.map((entry) {
           int index = entry.key;
           double value = entry.value;
           return BarChartGroupData(
