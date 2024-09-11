@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:percent_indicator/circular_percent_indicator.dart';
 import 'package:provider/provider.dart';
+import 'package:water_tracker/Model/dashboard_model.dart';
 import 'package:water_tracker/ViewModel/DashboardProvider.dart';
 import '../CustomDialogue.dart';
 
@@ -43,9 +44,11 @@ class _DashboardState extends State<Dashboard> {
                         "Today",
                         style: TextStyle(color: Colors.blue, fontSize: 40),
                       ),
-                      Text(
-                        DateFormat.yMMMMd().format(DateTime.now()),
-                        style: const TextStyle(fontSize: 16, color: Colors.pink),
+                      Consumer<DashboardProvider>(
+                        builder: (context, provider, child)=> Text(
+                          DateFormat.yMMMMd().format(provider.currentTime),
+                          style: const TextStyle(fontSize: 16, color: Colors.pink),
+                        ),
                       )
                     ],
                   ),

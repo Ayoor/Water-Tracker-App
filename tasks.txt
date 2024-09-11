@@ -1,0 +1,3 @@
+not resetting on new day -- solved
+resolve the weekly history [problem it only works with current day]
+push notifications

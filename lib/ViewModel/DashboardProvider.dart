@@ -76,6 +76,7 @@ class DashboardProvider extends ChangeNotifier {
       _currentMill = 0;
       _dueDate = "Due";
     }
+    prefs.setString("LastOpened", _currentTime.toString());
     setIndicatorPercentage();
     notifyListeners();
   }
@@ -92,9 +93,22 @@ class DashboardProvider extends ChangeNotifier {
     if (lastDrinkTimeString != null) {
       lastDrinkTime = DateTime.parse(lastDrinkTimeString);
     } else {
-      lastDrinkTime = currentTime.subtract(const Duration(minutes: 1));
+      lastDrinkTime = currentTime.subtract(const Duration(days: 1));
     }
     return lastDrinkTime;
+  }
+
+  Future<DateTime> _getLastAppOpened() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? lastTimeOpenedString = prefs.getString("LastOpened");
+    DateTime lastTimeOpened;
+
+    if (lastTimeOpenedString != null) {
+      lastTimeOpened = DateTime.parse(lastTimeOpenedString);
+    } else {
+      lastTimeOpened = currentTime.subtract(const Duration(minutes: 1));
+    }
+    return lastTimeOpened;
   }
 
   // *************************************
@@ -149,7 +163,6 @@ class DashboardProvider extends ChangeNotifier {
     _dueDate = DateFormat('h:mm a').format(getNextDrinkTime());
     String nextDrinkTime = getNextDrinkTime().toString();
     prefs.setString('futureTime', nextDrinkTime);
-    prefs.setString('lastDrinkTime', DateTime.now().toString());
 
     DrinkData drinkData = DrinkData(
         cupData:
@@ -163,19 +176,19 @@ class DashboardProvider extends ChangeNotifier {
       _drinkHistory = await _retrieveDrinkHistory();
 
       _weeklyData[_weeklyData.length - 1] = (HistoryData(
-            date: "${DateTime.now().day}/ ${DateTime.now().month}",
+            date: "${_currentTime.day}/${_currentTime.month}",
             totalWaterMl: _currentMill.toDouble()));
 
     } else {
       //save to weekly list before deleting
       if (_weeklyData.length != 7) {
         _weeklyData.add(HistoryData(
-            date: "${DateTime.now().day}/ ${DateTime.now().month}",
+            date: "${_currentTime.day}/${_currentTime.month}",
             totalWaterMl: _currentMill.toDouble()));
       } else {
         _weeklyData.removeAt(0);
         _weeklyData.add(HistoryData(
-            date: "${DateTime.now().day}/ ${DateTime.now().month}",
+            date: "${_currentTime.day}/${_currentTime.month}",
             totalWaterMl: _currentMill.toDouble()));
       }
       _drinkHistory = [];
@@ -193,21 +206,6 @@ class DashboardProvider extends ChangeNotifier {
     saveDrinkHistory(_drinkHistory);
     _showToast("Happy Drinking");
 
-
-
-    // Retrieve the list of JSON strings
-    List<String>? h = prefs.getStringList('historyData');
-    if(h!=null) {
-      // Convert each JSON string back to a HistoryData object
-      _weeklyData= historyList.map((item) => HistoryData.fromMap(jsonDecode(item))).toList();
-      print("Saved Data: ${_weeklyData[0].totalWaterMl} with size of ${_weeklyData.length}");
-
-    }
-    else{
-      _weeklyData=[];
-      print("Weekly Data empty");
-    }
-
     notifyListeners();
   }
 
@@ -215,9 +213,7 @@ class DashboardProvider extends ChangeNotifier {
 
   void retrieveWeeklyHistoryData() async {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
-    _currentMill= prefs.getInt("currentMill")??0;
-
-    // Retrieve the list of JSON strings
+        // Retrieve the list of JSON strings
     List<String>? historyList = prefs.getStringList('historyData');
 
     if (historyList != null) {
@@ -230,34 +226,34 @@ class DashboardProvider extends ChangeNotifier {
     }
     if(_weeklyData.isEmpty){
       _weeklyData.add(HistoryData(
-          date: "${DateTime.now().day}/ ${DateTime.now().month}",
+          date: "${_currentTime.day}/${_currentTime.month}",
           totalWaterMl: 0.0));
     }
     else{
-      DateTime lastDrinkTime = await _getLastDrinkTime();
+      DateTime lastTimeAppOpened = await _getLastAppOpened();
 
-      if (_currentTime.day == lastDrinkTime.day) {
+      if (_currentTime.day == lastTimeAppOpened.day) {
 
         _weeklyData[_weeklyData.length - 1] = (HistoryData(
-              date: "${DateTime.now().day}/ ${DateTime.now().month}",
+              date: "${_currentTime.day}/${_currentTime.month}",
               totalWaterMl: _currentMill.toDouble()));
 
       } else {
-
+          _currentMill =0;
         if (_weeklyData.length != 7) {
           _weeklyData.add(HistoryData(
-              date: "${DateTime.now().day}/ ${DateTime.now().month}",
+              date: "${_currentTime.day}/${_currentTime.month}",
               totalWaterMl: _currentMill.toDouble()));
         }
 
         else {
           _weeklyData.removeAt(0);
           _weeklyData.add(HistoryData(
-              date: "${DateTime.now().day}/ ${DateTime.now().month}",
+              date: "${_currentTime.day}/${_currentTime.month}",
               totalWaterMl: _currentMill.toDouble()));
         }
-        lastDrinkTime = DateTime.now().subtract(const Duration(milliseconds: 500));
-        prefs.setString("lastDrinkTime", "$lastDrinkTime");
+          lastTimeAppOpened = _currentTime.subtract(const Duration(milliseconds: 500));
+       prefs.setString("LastOpened", "$lastTimeAppOpened") ;
       }
       // Convert the list of HistoryData to a list of Maps
       List<String> historyList =
@@ -270,17 +266,18 @@ class DashboardProvider extends ChangeNotifier {
    
 
     // Retrieve the list of JSON strings
-    List<String>? h = prefs.getStringList('historyData');
-    if(h!=null) {
-      // Convert each JSON string back to a HistoryData object
-      _weeklyData= historyList.map((item) => HistoryData.fromMap(jsonDecode(item))).toList();
-      print("Saved Data: ${_weeklyData[0].totalWaterMl} with size of ${_weeklyData.length}");
-      
-    }
-    else{
-      _weeklyData=[];
-      print("Weekly Data empty");
-    }
+    // List<String>? h = prefs.getStringList('historyData');
+    // if(h!=null) {
+    //   // Convert each JSON string back to a HistoryData object
+    //   _weeklyData= historyList.map((item) => HistoryData.fromMap(jsonDecode(item))).toList();
+    //   print("Saved Data: ${_weeklyData[0].date} with size of ${_weeklyData.length}");
+    //
+    //
+    // }
+    // else{
+    //   _weeklyData=[];
+    //   print("Weekly Data empty");
+    // }
 notifyListeners();
   }
 
@@ -301,7 +298,7 @@ notifyListeners();
   // *************************************
 
   DateTime getNextDrinkTime() {
-    DateTime currentTime = DateTime.now();
+    DateTime currentTime = _currentTime;
     DateTime nextDrinkTime = currentTime.add(const Duration(hours: 3));
 
     return nextDrinkTime;
@@ -313,12 +310,12 @@ notifyListeners();
 
   String getDate() {
     final formatter = DateFormat('dd/MM/yyy'); // Year-Month-Day format
-    String formattedDate = formatter.format(DateTime.now());
+    String formattedDate = formatter.format(_currentTime);
     return formattedDate;
   }
 
   String getCurrentTime() {
-    DateTime currentTime = DateTime.now();
+    DateTime currentTime = _currentTime;
     String nextDueTime = DateFormat('h:mm a').format(currentTime);
     return nextDueTime;
   }

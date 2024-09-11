@@ -41,12 +41,20 @@ dependencies:
   shared_preferences:
   provider:
   fl_chart:
+  flutter_local_notifications:
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
+  flutter_launcher_icons:
 
-  # The "flutter_lints" package below contains a set of recommended lints to
+flutter_icons:
+  android: true
+  ios: true
+  image_path: "Assets/water100.png"
+  adaptive_icon_background: "#00000000"
+
+# The "flutter_lints" package below contains a set of recommended lints to
   # encourage good coding practices. The lint set provided by the package is
   # activated in the `analysis_options.yaml` file located at the root of your
   # package. See that file for information about deactivating specific lint

@@ -17,22 +17,38 @@ class DrinkHistoryProvider extends ChangeNotifier {
 
   Future<List<DrinkData>> retrieveDrinkHistory() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    // String lastDrinkTimeString = prefs.getString("lastDrinkTime") ?? DateTime.now().toString();
-    // DateTime lastDrinkTime = DateTime.parse(lastDrinkTimeString);
+    String lastDrinkTimeString = prefs.getString("lastDrinkTime") ??
+        DateTime.now().toString();
+    DateTime lastDrinkTime = DateTime.parse(lastDrinkTimeString);
     List<String>? encodedList = prefs.getStringList('drinkHistory');
-
-    if (encodedList != null) {
-      return encodedList.map((encodedDrink) => DrinkData.fromJson(jsonDecode(encodedDrink))).toList().reversed.toList();
-    } else {
+    if (lastDrinkTime.day != DateTime.now()
+        .day) {
       return [];
+    }
+    else {
+      if (encodedList != null) {
+        return encodedList
+            .map((encodedDrink) => DrinkData.fromJson(jsonDecode(encodedDrink)))
+            .toList()
+            .reversed
+            .toList();
+      } else {
+        return [];
+      }
     }
   }
 
 
   List<double> sevenDays(List<HistoryData> history, List<String> last7Days){
     List<double> waterIntakeVolumePerDay = [];
-    if(history.isNotEmpty){
-    for(int i = 0; i < 7; i++) {
+   if(history.length <7){
+     for(int i = history.length; i < 7; i++){
+       history.add(HistoryData(date: "", totalWaterMl: 0));
+     }
+
+   }
+   history = history.reversed.toList();
+       for(int i = 0; i < 7; i++) {
       if(history[i].date != last7Days[i]){
         waterIntakeVolumePerDay.add(0);
       }
@@ -40,7 +56,7 @@ class DrinkHistoryProvider extends ChangeNotifier {
         waterIntakeVolumePerDay.add(history[i].totalWaterMl);
       }
     }
-    }
+
 
     return waterIntakeVolumePerDay;
   }

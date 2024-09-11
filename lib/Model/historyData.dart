@@ -1,6 +1,7 @@
 class HistoryData {
   final String date;
   late final double totalWaterMl;
+  final List<double> yValues =[];
 
   HistoryData({required this.date, required this.totalWaterMl});
 

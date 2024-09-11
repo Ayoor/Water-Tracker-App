@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:water_tracker/ViewModel/DashboardProvider.dart';
 import 'package:water_tracker/widgets/chart.dart';
 import '../Model/historyData.dart';
 import '../ViewModel/DrinkHistoryProvider.dart';
@@ -18,7 +19,8 @@ class _HistoryState extends State<History> with SingleTickerProviderStateMixin {
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
-    Provider.of<DrinkHistoryProvider>(context, listen: false).loadDrinkHistory();
+    Provider.of<DrinkHistoryProvider>(context, listen: false)
+        .loadDrinkHistory();
   }
 
   @override
@@ -51,51 +53,64 @@ class _HistoryState extends State<History> with SingleTickerProviderStateMixin {
         ),
       ),
       body: TabBarView(
-        controller: _tabController,
-        children: [
-          // Tab 1 - Today
-          Consumer<DrinkHistoryProvider>(
-            builder: (context, provider, child) {
-              provider.loadDrinkHistory();
-              return Padding(
-                padding: const EdgeInsets.all(15.0),
-                child: ListView.builder(
-                  itemCount: provider.drinkHistory.length,
-                  itemBuilder: (context, index) {
-                    final drinkData = provider.drinkHistory[index];
-                    return Container(
-                      margin: const EdgeInsets.only(bottom: 20),
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(10.0),
-                        border: Border.all(color: Colors.blueGrey, width: 1.0),
-                      ),
-                      child: ListTile(
-                        contentPadding: const EdgeInsets.all(12),
-                        leading: Image.asset(drinkData.cupData.image),
-                        title: Text(
-                          "You drank ${drinkData.cupData.cupMlText} at ${drinkData.time} ",
-                        ),
-                      ),
-                    );
-                  },
-                ),
-              );
-            },
-          ),
+          controller: _tabController,
+          children: [
+      // Tab 1 - Today
+      Consumer<DrinkHistoryProvider>(
+      builder: (context, provider, child) {
+    provider.loadDrinkHistory();
+    if (provider.drinkHistory.isEmpty) {
+    return const Center(
+    child: Text("No drinks for today yet, Drink a glass and get Hydrated"),
+    );
+    }
+    else {
+    return Padding(
+    padding: const EdgeInsets.all(15.0),
+    child: ListView.builder(
+    itemCount: provider.drinkHistory.length,
+    itemBuilder: (context, index) {
+    final drinkData = provider.drinkHistory[index];
+    return Container(
+    margin: const EdgeInsets.only(bottom: 20),
+    decoration: BoxDecoration(
+    borderRadius: BorderRadius.circular(10.0),
+    border: Border.all(
+    color: Colors.blueGrey, width: 1.0),
+    ),
+    child: ListTile(
+    contentPadding: const EdgeInsets.all(12),
+    leading: Image.asset(drinkData.cupData.image),
+    title: Text(
+    "You drank ${drinkData.cupData
+        .cupMlText} at ${drinkData.time} ",
+    ),
+    ),
+    );
+    },
+    ),
+    );
+    }
+    },
+    ),
 
-          // Tab 2 - Past Week
-          Center(
-            child: Padding(
-              padding: const EdgeInsets.all(15.0),
-              child: SizedBox(
-                height: MediaQuery.of(context).size.height / 2.5,
-                               // child: AnimatedBarGraph(),
-                               child: Consumer<DrinkHistoryProvider>( builder: (context, provider, child) => const AnimatedBarGraph())
-              ),
-            ),
-          ),
-        ],
-      ),
+    // Tab 2 - Past Week
+    Center(
+    child: Padding(
+    padding: const EdgeInsets.all(15.0),
+    child: SizedBox(
+    height: MediaQuery.of(context).size.height / 2.5,
+    // child: AnimatedBarGraph(),
+    child: Consumer<DrinkHistoryProvider>( builder: (context, provider, child) {
+      final dashhboardProvider = Provider.of<DashboardProvider>(context, listen: false);
+      dashhboardProvider.retrieveWeeklyHistoryData();
+      return const AnimatedBarGraph();}
+    ),
+    ),
+    ),
+    ),
+    ],
+    ),
     );
   }
 

@@ -4,6 +4,7 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:water_tracker/ViewModel/DashboardProvider.dart';
 import 'package:water_tracker/ViewModel/DrinkHistoryProvider.dart';
 import '../Model/historyData.dart';
 
@@ -21,19 +22,20 @@ class _AnimatedBarGraphState extends State<AnimatedBarGraph> {
 
 
     final historyProvider = Provider.of<DrinkHistoryProvider>(context, listen: false);
+    final dashboardProvider = Provider.of<DashboardProvider>(context, listen: false);
     final List<String> xLabels = historyProvider.getLast7days().reversed.toList();
 
 
-   retrieveWeeklyData();
+   dashboardProvider.retrieveWeeklyHistoryData();
 
-    final List<double> yValues = historyProvider.sevenDays(weeklyData, historyProvider.getLast7days().reversed.toList());
+    final List<double> yValues = historyProvider.sevenDays(dashboardProvider.weeklyData, historyProvider.getLast7days().reversed.toList());
 
     double maxYValue = yValues.reduce((a, b) => a > b ? a : b); // Find the maximum y value
 
     return BarChart(
       BarChartData(
         alignment: BarChartAlignment.spaceAround,
-        maxY: maxYValue + 100, // Adjust maxY to be slightly higher than the max value in yValues
+        maxY: maxYValue + 500, // Adjust maxY to be slightly higher than the max value in yValues
         minY: 0,
         barTouchData: BarTouchData(enabled: true),
         titlesData: FlTitlesData(
@@ -56,10 +58,17 @@ class _AnimatedBarGraphState extends State<AnimatedBarGraph> {
             sideTitles: SideTitles(
               showTitles: true,
               getTitlesWidget: (value, meta) {
-                // Format the Y-axis values
-                return Text('${(value / 1000).toStringAsFixed(1)}k', style: const TextStyle(fontSize: 12));
+                if(value >= 1000) {
+                  // Format the Y-axis values
+                  return Text('${(value / 1000).toStringAsFixed(1)}k',
+                      style: const TextStyle(fontSize: 12));
+                }
+                else{
+                  return Text('$value',
+                      style: const TextStyle(fontSize: 12));
+                }
               },
-              interval: 5000, // Adjust the interval based on your data range
+              interval: 500, // Adjust the interval based on your data range
               reservedSize: 40,
             ),
           ),
@@ -85,23 +94,11 @@ class _AnimatedBarGraphState extends State<AnimatedBarGraph> {
             ],
           );
         }).toList(),
-        gridData: const FlGridData(show: false),
+        gridData: const FlGridData(show: true, drawVerticalLine: false),
       ),
       swapAnimationDuration: const Duration(milliseconds: 500),
       swapAnimationCurve: Curves.easeInOut,
     );
   }
-  Future<void> retrieveWeeklyData() async {
-    final SharedPreferences prefs = await SharedPreferences.getInstance();
 
-    // Retrieve the list of JSON strings
-    List<String>? historyList = prefs.getStringList('historyData');
-    if(historyList!=null) {
-      // Convert each JSON string back to a HistoryData object
-      weeklyData= historyList.map((item) => HistoryData.fromMap(jsonDecode(item))).toList();
-    }
-    else{
-      weeklyData=[];
-    }
-  }
 }
