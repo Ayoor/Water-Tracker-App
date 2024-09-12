@@ -13,6 +13,6 @@ class DashboardModel {
   double indicatorPercentage = 0.0;
   List<HistoryData> weeklyHistory = [];
   List<DrinkData> drinkHistory = [];
-  // DateTime currentTime = DateTime.now().add(Duration(days: 1));
   DateTime currentTime = DateTime.now();
+  // DateTime currentTime = DateTime.now();
 }

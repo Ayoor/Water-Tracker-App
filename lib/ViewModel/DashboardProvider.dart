@@ -357,6 +357,7 @@ notifyListeners();
 
   List<double> sevenDays(List<HistoryData> history, List<String> last7Days){
     List<double> waterIntakeVolumePerDay = [];
+    history = history.reversed.toList();
     if(history.length <7){
       for(int i = history.length; i < 7; i++){
         history.add(HistoryData(date: "", totalWaterMl: 0));
@@ -380,11 +381,9 @@ notifyListeners();
     List<String> last7Days = [];
     String date;
     for (int i = 0; i < 7; i++) {
-      date = "${DateTime
-          .now()
+      date = "${_currentTime
           .subtract(Duration(days: i))
-          .day}/${DateTime
-          .now()
+          .day}/${_currentTime
           .subtract(Duration(days: i))
           .month}";
       // print("date: $date");
